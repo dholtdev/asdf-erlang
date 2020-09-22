@@ -117,6 +117,41 @@ $ export KERL_CONFIGURE_OPTIONS="--without-javac --with-ssl=$(brew --prefix open
 $ asdf install erlang <version>
 ```
 
+### Dealing with "static declaration follows non-static declaration" issue on macOS
+
+You may encounter a build error similar to this:
+
+```
+Build failed.
+extern const struct in6_addr in6addr_loopback;
+```
+
+with log entries similar to the following:
+
+```
+drivers/common/inet_drv.c:1484:30: error: static declaration of 'in6addr_any' follows non-static declaration
+static const struct in6_addr in6addr_any = { { IN6ADDR_ANY_INIT } };
+                             ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/netinet6/in6.h:211:30: note: previous declaration is here
+extern const struct in6_addr in6addr_any;
+                             ^
+drivers/common/inet_drv.c:1493:30: error: static declaration of 'in6addr_loopback' follows non-static declaration
+static const struct in6_addr in6addr_loopback =
+                             ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/netinet6/in6.h:212:30: note: previous declaration is here
+extern const struct in6_addr in6addr_loopback;
+```
+
+This issue is discussed, along with a solution, [in issue
+157](https://github.com/asdf-vm/asdf-erlang/issues/157#issuecomment-685844782).
+Only some people are seeing this issue, but if you do encounter it, you can
+probably resolve it by setting a the following CFLAGS before installing Erlang.
+
+```
+$ export CFLAGS="-O2 -g -fno-stack-check -Wno-error=implicit-function-declaration"
+$ asdf install erlang <version>
+```
+
 ## CentOS & Fedora
 
 These steps assume a most recent build of CentOS (currently
